@@ -20,140 +20,82 @@ def load_report_card(directory, student_number):
         return {}
 
     return report_card
-
-def average_student_mark(student_list):
-    count = 0
-    acu_grade = 0
+    
+def add_student_averages(student_list):    
     for student in student_list:
+        acu_grade = 0
         for sb in SUBJECTS:
             gr = student[sb]
             acu_grade += gr
-            count += 1
-    print(f"Average Student Grade: {acu_grade/count}")
+        student['average'] = acu_grade / len(SUBJECTS)
+    
+def average_student_mark(student_list):
+    sum_of_averages = 0
+    for student in student_list:
+        sum_of_averages += student['average']
+    return sum_of_averages / len(student_list)
 
-def hardest_subject(student_list):
-    lowest_grade = 100
-    subject = None
-
-    for sub in SUBJECTS:
-        count, acu_grade = 0, 0
-        for student in student_list:
-            grade = student[sub]
-            acu_grade += grade
-            count += 1
-        average = acu_grade / count
-        if average < lowest_grade:
-                lowest_grade = average
-                subject = sub
-    print(f"Hardest Subject: {subject}")
-
-def easiest_subject(student_list):
-    highest_grade = 0
-    subject = None
-
-    for sub in SUBJECTS:
-        count, acu_grade = 0, 0
-        for student in student_list:
-            grade = student[sub]
-            acu_grade += grade
-            count += 1
-        average = acu_grade / count
-        if average > highest_grade:
-            highest_grade = average
-            subject = sub
-    print(f"Easiest Subject: {subject}")
-
-def best_performing_grade(student_list):
-    highest_grade = 0
-    best_Grade = None    
-    for i in range(1,9):
-        acu_grade, count = 0, 0
-        for student in student_list:
-            if student['grade'] == i:
-                for sub in SUBJECTS:
-                    grade = student[sub]
-                    acu_grade += grade
-                    count += 1
-        average = acu_grade / count
-        if average > highest_grade:
-            highest_grade = average
-            best_Grade = i
-    print(f"Best Performing Grade: {best_Grade}")
-
-def worst_performing_grade(student_list):
-    lowest_grade = 100
-    worst_Grade = None
-    for i in range(1, 9):
-        acu_grade, count = 0, 0
-        for student in student_list:
-            if student['grade'] == i:
-                for sub in SUBJECTS:
-                    grade = student[sub]
-                    acu_grade += grade
-                    count += 1
-        average = acu_grade / count
-        if average < lowest_grade:
-            lowest_grade = average
-            worst_Grade = i
-    print(f"Worst Performing Grade: {worst_Grade}")                
-
-def best_student_id(student_list):
-    highest_grade = 0
-    id = None
+def get_subject_averages(student_list):
+    subject_averages = {subject : 0 for subject in SUBJECTS}
 
     for student in student_list:
-        acu_grade, count = 0, 0
-        for sub in SUBJECTS:
-            grade = student[sub] 
-            acu_grade += grade
-            count += 1
-        average = acu_grade / count
-        if average > highest_grade:
-            highest_grade = average
-            id = student['id']
-    print(f"Best student ID: {id}")
+        for subject in SUBJECTS:
+            subject_averages[subject] += student[subject]
+    
+    for subject in subject_averages:
+        subject_averages[subject] = subject_averages[subject] / len(student_list)
+    
+    return subject_averages
 
-def worst_student_id(student_list):
-    lowest_grade = 100
-    id = None
+def get_grade_level_averages(student_list):
+    grade_level_averages = {lvl:[] for lvl in range(1,9)}
 
     for student in student_list:
-        acu_grade, count = 0, 0
-        for sub in SUBJECTS:
-            grade = student[sub] 
-            acu_grade += grade
-            count += 1
-        average = acu_grade / count
-        if average < lowest_grade:
-            lowest_grade = average
-            id = student['id']
-    print(f"Worst student ID: {id}")
+        level = student['grade']
+        average = student['average']
+        grade_level_averages[level].append(average)
+    
+    for lvl in grade_level_averages:
+        grade_level_averages[lvl] = sum(grade_level_averages[lvl]) / len(grade_level_averages[lvl])
+    
+    return grade_level_averages
 
 def main():
     students_lst = []
-    for i in range(1000):
+    for i in range(NUM_STUDENTS):
         rc = load_report_card('students', i)
         students_lst.append(rc)
     
     # 1
-    average_student_mark(students_lst)
+    add_student_averages(students_lst)
+    # 2
+    average_student_grade = average_student_mark(students_lst)
 
     # 2
-    hardest_subject(students_lst)
+    subject_averages = get_subject_averages(students_lst)
+    sorted_subject_averages = sorted(subject_averages.items(), key=lambda x: x[1])
+    easiest_subject = sorted_subject_averages[-1][0]
+    hardest_subject = sorted_subject_averages[0][0]
 
     # 3 
-    easiest_subject(students_lst)
+    grade_level_averages = get_grade_level_averages(students_lst)
+    sorted_grade_level_averages = sorted(grade_level_averages.items(), key=lambda x: x[1])
+    best_lvl = sorted_grade_level_averages[-1][0]
+    worst_lvl = sorted_grade_level_averages[0][0]
 
     # 4
-    best_performing_grade(students_lst)
-
-    # 5
-    worst_performing_grade(students_lst)
+    print(students_lst[:2])
     
-    #6
-    best_student_id(students_lst)
+    students_sorted_by_grade = sorted(students_lst, key=lambda x: x['average'])
+    best_student = students_sorted_by_grade[-1]['id']
+    worst_student = students_sorted_by_grade[0]['id']
 
-    #7
-    worst_student_id(students_lst)
+    print(f"Average Student Grade: {average_student_grade}")
+    print(f"Hardest Subject: {hardest_subject}")
+    print(f"Easiest Subject: {easiest_subject}")
+    print(f"Best Performing Grade: {best_lvl}")
+    print(f"Worst Performing Grade: {worst_lvl}")
+    print(f"Best Student ID: {best_student}")
+    print(f"Worst Student ID: {worst_student}")
 if __name__ == '__main__':
     main()
